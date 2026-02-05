@@ -80,17 +80,16 @@ generateBtn.addEventListener('click', async () => {
     return;
   }
 
+  // Creamos un nuevo documento PDF
   const pdfDoc = await PDFLib.PDFDocument.create();
-  const font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
 
-  // Creamos una página para cada conjunto de imágenes
+  // Recorremos las imágenes para agregarlas al PDF
   const pageWidth = 595;
   const pageHeight = 842;
   let currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
   let x = 30; // Margen izquierdo
   let y = pageHeight - 30; // Margen superior (empezamos desde arriba)
 
-  // Dibujamos las imágenes en el PDF
   for (const imgObj of images) {
     const imgBytes = await imgObj.file.arrayBuffer();
     const img = imgObj.file.type.startsWith('image/png')
@@ -117,7 +116,7 @@ generateBtn.addEventListener('click', async () => {
         height = 300;
     }
 
-    // Dibujo de la imagen
+    // Dibujo de la imagen en el PDF
     currentPage.drawImage(img, { x, y, width, height });
 
     // Actualizamos las coordenadas para la siguiente imagen
@@ -130,6 +129,7 @@ generateBtn.addEventListener('click', async () => {
     }
   }
 
+  // Guardar el PDF como bytes
   const pdfBytes = await pdfDoc.save();
   showPreview(pdfBytes);
 });
