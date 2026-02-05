@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-
   const fileInput = document.getElementById('fileInput');
   const pagesContainer = document.getElementById('pagesContainer');
   const generateBtn = document.getElementById('generate');
@@ -7,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Subir imágenes
   fileInput.addEventListener('change', () => {
+    console.log('Archivos seleccionados:', fileInput.files);  // Log para ver si los archivos se seleccionan
     for (const file of fileInput.files) {
       images.push({ file, size: 'medium' }); // Por defecto tamaño medio
     }
