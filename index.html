@@ -1,8 +1,36 @@
-<input type="file" id="fileInput" multiple accept=".docx,image/*">
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Generador de PDF</title>
 
-<ul id="fileList"></ul>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
 
-<button id="generate">Generar PDF</button>
+  <h1>Generar PDF</h1>
 
-<h3>Vista previa</h3>
-<iframe id="preview"></iframe>
+  <input
+    type="file"
+    id="fileInput"
+    multiple
+    accept=".docx,image/*"
+  />
+
+  <ul id="fileList"></ul>
+
+  <button id="generate">Generar PDF</button>
+
+  <h2>Vista previa</h2>
+  <iframe id="preview"></iframe>
+
+  <!-- Librerías -->
+  <script src="libs/pdf-lib.min.js"></script>
+  <script src="libs/mammoth.browser.min.js"></script>
+  <script src="libs/sortable.min.js"></script>
+
+  <!-- Tu código -->
+  <script src="main.js"></script>
+</body>
+</html>
