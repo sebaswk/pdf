@@ -6,7 +6,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Subir imágenes
   fileInput.addEventListener('change', () => {
-    console.log('Archivos seleccionados:', fileInput.files);  // Log para ver si los archivos se seleccionan
     for (const file of fileInput.files) {
       images.push({ file, size: 'medium' }); // Por defecto tamaño medio
     }
@@ -86,11 +85,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Creamos un nuevo documento PDF
       const pdfDoc = await PDFLib.PDFDocument.create();
-      const pageWidth = 595;
+      const pageWidth = 595; // A4 en puntos (en un PDF)
       const pageHeight = 842;
       let currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
-      let x = 20; // Margen izquierdo
-      let y = pageHeight - 20; // Margen superior (empezamos desde arriba)
+      let x = 0; // Borde izquierdo
+      let y = pageHeight; // Borde superior
 
       // Recorremos las imágenes para agregarlas al PDF
       for (const imgObj of images) {
@@ -99,42 +98,50 @@ document.addEventListener('DOMContentLoaded', () => {
           ? await pdfDoc.embedPng(imgBytes)
           : await pdfDoc.embedJpg(imgBytes);
 
-        // Determinamos el tamaño de la imagen
+        // Ajustamos el tamaño de la imagen para que se ajuste a la página
         let width, height;
+
         switch (imgObj.size) {
           case 'small':
-            width = 300;
-            height = 300;
+            width = pageWidth / 2; // Tamaño pequeño ajustado a la mitad de la página
+            height = (img.height / img.width) * width; // Mantener la proporción
             break;
           case 'medium':
-            width = 500;
-            height = 500;
+            width = (pageWidth * 3) / 4; // Tamaño medio, 3/4 del ancho
+            height = (img.height / img.width) * width; // Mantener la proporción
             break;
           case 'large':
-            width = 800;
-            height = 800;
+            width = pageWidth; // Tamaño grande ajustado a todo el ancho de la página
+            height = (img.height / img.width) * width; // Mantener la proporción
             break;
           default:
-            width = 800;
-            height = 800;
+            width = pageWidth / 2;
+            height = (img.height / img.width) * width;
         }
 
-        // Dibujo de la imagen en el PDF
-        currentPage.drawImage(img, { x, y, width, height });
+        // Aseguramos que la imagen no se desborde por el borde de la página
+        if (y - height < 0) {
+          // Si la imagen no cabe, creamos una nueva página
+          currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
+          y = pageHeight;
+        }
 
-        // Actualizamos las coordenadas para la siguiente imagen
-        y -= height + 30; // Margen entre imágenes
+        // Dibujamos la imagen
+        currentPage.drawImage(img, { x, y: y - height, width, height });
+
+        // Actualizamos la posición vertical para la siguiente imagen
+        y -= height + 10; // Ajuste del margen entre imágenes
 
         // Si llegamos al final de la página, creamos una nueva
-        if (y < 30) {
+        if (y < 50) {
           currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
-          y = pageHeight - 30; // Reiniciamos la posición en Y
+          y = pageHeight;
         }
       }
 
       // Guardar el PDF como bytes
       const pdfBytes = await pdfDoc.save();
-      download(pdfBytes, 'documento.pdf');
+      showPreview(pdfBytes);
 
     } catch (error) {
       console.error("Error al generar el PDF: ", error);
