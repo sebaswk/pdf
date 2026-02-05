@@ -1,74 +1,38 @@
-const input = document.getElementById('fileInput');
-const button = document.getElementById('generate');
+const fileInput = document.getElementById('fileInput');
+const fileList = document.getElementById('fileList');
+const preview = document.getElementById('preview');
 
-button.onclick = async () => {
-  if (!input.files.length) {
-    return alert('Selecciona uno o más archivos');
+let files = [];
+
+fileInput.onchange = () => {
+  for (const file of fileInput.files) {
+    files.push(file);
+    renderFile(file);
   }
-
-  const pdfDoc = await PDFLib.PDFDocument.create();
-  const font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
-
-  for (const file of input.files) {
-    if (file.type.startsWith('image/')) {
-      await addImagePage(pdfDoc, file);
-    }
-
-    if (file.name.endsWith('.docx')) {
-      await addWordPages(pdfDoc, file, font);
-    }
-  }
-
-  const pdfBytes = await pdfDoc.save();
-  download(pdfBytes, 'documento.pdf');
 };
 
-async function addImagePage(pdfDoc, file) {
-  const page = pdfDoc.addPage([595, 842]);
-  const { width, height } = page.getSize();
+function renderFile(file) {
+  const li = document.createElement('li');
+  li.file = file;
 
-  const bytes = await file.arrayBuffer();
-  const image = file.type.includes('png')
-    ? await pdfDoc.embedPng(bytes)
-    : await pdfDoc.embedJpg(bytes);
+  li.innerHTML = `
+    <strong>${file.name}</strong>
+    <div class="thumb"></div>
+    <button class="remove">✖</button>
+  `;
 
-  const scale = Math.min(
-    (width - 80) / image.width,
-    (height - 80) / image.height
-  );
-
-  page.drawImage(image, {
-    x: (width - image.width * scale) / 2,
-    y: (height - image.height * scale) / 2,
-    width: image.width * scale,
-    height: image.height * scale,
-  });
-}
-
-async function addWordPages(pdfDoc, file, font) {
-  const buffer = await file.arrayBuffer();
-  const result = await mammoth.extractRawText({ arrayBuffer: buffer });
-
-  const text = result.value;
-  const lines = text.split('\n');
-
-  let page = pdfDoc.addPage([595, 842]);
-  let y = 800;
-
-  for (const line of lines) {
-    if (y < 60) {
-      page = pdfDoc.addPage([595, 842]);
-      y = 800;
-    }
-
-    page.drawText(line, {
-      x: 50,
-      y,
-      size: 12,
-      font,
-      maxWidth: 495,
-    });
-
-    y -= 18;
+  if (file.type.startsWith('image/')) {
+    const img = document.createElement('img');
+    img.src = URL.createObjectURL(file);
+    li.querySelector('.thumb').appendChild(img);
+  } else {
+    li.querySelector('.thumb').textContent = 'Documento Word';
   }
+
+  li.querySelector('.remove').onclick = () => {
+    files = files.filter(f => f !== file);
+    li.remove();
+  };
+
+  fileList.appendChild(li);
 }
