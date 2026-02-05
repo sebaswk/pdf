@@ -5,16 +5,18 @@ const generateBtn = document.getElementById('generate');
 
 let files = [];
 
-/* ---------- Subida + preview ---------- */
+/* ===============================
+   SUBIDA + VISTA PREVIA
+================================ */
 
 fileInput.addEventListener('change', () => {
   for (const file of fileInput.files) {
     files.push(file);
-    addFileCard(file);
+    renderFile(file);
   }
 });
 
-function addFileCard(file) {
+function renderFile(file) {
   const li = document.createElement('li');
   li.file = file;
 
@@ -24,12 +26,14 @@ function addFileCard(file) {
     <button class="remove">✕</button>
   `;
 
+  const thumb = li.querySelector('.thumb');
+
   if (file.type.startsWith('image/')) {
     const img = document.createElement('img');
     img.src = URL.createObjectURL(file);
-    li.querySelector('.thumb').appendChild(img);
+    thumb.appendChild(img);
   } else {
-    li.querySelector('.thumb').textContent = 'Documento Word';
+    thumb.textContent = 'Documento Word';
   }
 
   li.querySelector('.remove').onclick = () => {
@@ -40,7 +44,9 @@ function addFileCard(file) {
   fileList.appendChild(li);
 }
 
-/* ---------- Drag & drop ---------- */
+/* ===============================
+   DRAG & DROP
+================================ */
 
 new Sortable(fileList, {
   animation: 150,
@@ -49,93 +55,117 @@ new Sortable(fileList, {
   }
 });
 
-/* ---------- Generar PDF ---------- */
+/* ===============================
+   GENERAR PDF
+================================ */
 
 generateBtn.addEventListener('click', async () => {
   if (!files.length) {
-    return alert('Agrega al menos un archivo');
+    alert('Agrega al menos un archivo');
+    return;
   }
 
   const pdfDoc = await PDFLib.PDFDocument.create();
   const font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
 
-  const images = files.filter(f => f.type.startsWith('image/'));
-  const docs = files.filter(f => f.name.endsWith('.docx'));
+  let imageBuffer = [];
 
-  if (images.length) await addImages(pdfDoc, images, font);
-  for (const doc of docs) {
-    await addWord(pdfDoc, doc, font);
+  for (const file of files) {
+    if (file.type.startsWith('image/')) {
+      imageBuffer.push(file);
+
+      if (imageBuffer.length === 4) {
+        await drawImagePage(pdfDoc, imageBuffer);
+        imageBuffer = [];
+      }
+    }
+
+    if (file.name.endsWith('.docx')) {
+      if (imageBuffer.length) {
+        await drawImagePage(pdfDoc, imageBuffer);
+        imageBuffer = [];
+      }
+      await addWord(pdfDoc, file, font);
+    }
+  }
+
+  if (imageBuffer.length) {
+    await drawImagePage(pdfDoc, imageBuffer);
   }
 
   const pdfBytes = await pdfDoc.save();
   showPreview(pdfBytes);
 });
 
-/* ---------- Imágenes 2×2 ---------- */
+/* ===============================
+   IMÁGENES (1–4 POR PÁGINA)
+================================ */
 
-async function addImages(pdfDoc, images, font) {
-  for (let i = 0; i < images.length; i += 4) {
-    const page = pdfDoc.addPage([595, 842]);
+async function drawImagePage(pdfDoc, images) {
+  const page = pdfDoc.addPage([595, 842]);
 
-    const positions = [
-      [50, 450], [300, 450],
-      [50, 150], [300, 150],
-    ];
+  const layouts = {
+    1: [[197, 321]],
+    2: [[70, 321], [325, 321]],
+    3: [[70, 450], [325, 450], [197, 150]],
+    4: [[70, 450], [325, 450], [70, 150], [325, 150]],
+  };
 
-    for (let j = 0; j < 4 && i + j < images.length; j++) {
-      const file = images[i + j];
-      const bytes = await file.arrayBuffer();
-      const img = file.type.includes('png')
-        ? await pdfDoc.embedPng(bytes)
-        : await pdfDoc.embedJpg(bytes);
+  const positions = layouts[images.length];
 
-      page.drawImage(img, {
-        x: positions[j][0],
-        y: positions[j][1],
-        width: 200,
-        height: 200,
-      });
-    }
+  for (let i = 0; i < images.length; i++) {
+    const file = images[i];
+    const bytes = await file.arrayBuffer();
+
+    const img = file.type.includes('png')
+      ? await pdfDoc.embedPng(bytes)
+      : await pdfDoc.embedJpg(bytes);
+
+    page.drawImage(img, {
+      x: positions[i][0],
+      y: positions[i][1],
+      width: 200,
+      height: 200,
+    });
   }
 }
 
-/* ---------- Word ---------- */
+/* ===============================
+   WORD → PDF
+================================ */
 
 async function addWord(pdfDoc, file, font) {
   const buffer = await file.arrayBuffer();
   const result = await mammoth.extractRawText({ arrayBuffer: buffer });
 
   let page = pdfDoc.addPage([595, 842]);
-  let y = 780;
-
-  page.drawText(file.name, {
-    x: 50,
-    y,
-    size: 16,
-    font,
-  });
-
-  y -= 30;
+  let y = 800;
 
   for (const line of result.value.split('\n')) {
     if (y < 60) {
       page = pdfDoc.addPage([595, 842]);
-      y = 780;
+      y = 800;
     }
 
-    page.drawText(line, {
-      x: 50,
-      y,
-      size: 12,
-      font,
-      maxWidth: 495,
-    });
-
-    y -= 18;
+    if (line.trim()) {
+      page.drawText(line, {
+        x: 50,
+        y,
+        size: 12,
+        font,
+        maxWidth: 495,
+        lineHeight: 16,
+      });
+      y -= 18;
+    } else {
+      y -= 10;
+    }
   }
 }
 
-/* ---------- Preview ---------- */
+/* ===============================
+   VISTA PREVIA
+================================ */
 
 function showPreview(bytes) {
   const blob = new Blob([bytes], { type: 'application/pdf' });
