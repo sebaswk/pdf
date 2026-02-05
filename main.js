@@ -11,7 +11,7 @@ let files = [];
 
 fileInput.addEventListener('change', () => {
   for (const file of fileInput.files) {
-    files.push(file);
+    files.push({ file, size: 'medium', position: 'center' }); // tamaño y posición por defecto
     renderFile(file);
   }
 });
@@ -37,7 +37,7 @@ function renderFile(file) {
   }
 
   li.querySelector('.remove').onclick = () => {
-    files = files.filter(f => f !== file);
+    files = files.filter(f => f.file !== file);
     li.remove();
   };
 
@@ -51,7 +51,7 @@ function renderFile(file) {
 new Sortable(fileList, {
   animation: 150,
   onEnd() {
-    files = [...fileList.children].map(li => li.file);
+    files = [...fileList.children].map(li => files.find(f => f.file === li.file));
   }
 });
 
@@ -60,20 +60,20 @@ new Sortable(fileList, {
 ================================ */
 
 generateBtn.addEventListener('click', async () => {
-  if (!files.length) {
-    alert('Agrega al menos un archivo');
-    return;
-  }
+  if (!files.length) return alert('Agrega al menos un archivo');
 
   const pdfDoc = await PDFLib.PDFDocument.create();
   const font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
 
   let imageBuffer = [];
 
-  for (const file of files) {
-    if (file.type.startsWith('image/')) {
-      imageBuffer.push(file);
+  for (const obj of files) {
+    const file = obj.file;
 
+    if (file.type.startsWith('image/')) {
+      imageBuffer.push(obj);
+
+      // Si se juntan 4 imágenes o es la última imagen, dibujamos la página
       if (imageBuffer.length === 4) {
         await drawImagePage(pdfDoc, imageBuffer);
         imageBuffer = [];
@@ -98,35 +98,51 @@ generateBtn.addEventListener('click', async () => {
 });
 
 /* ===============================
-   IMÁGENES (1–4 POR PÁGINA)
+   IMÁGENES CON TAMAÑO Y POSICIÓN
 ================================ */
 
 async function drawImagePage(pdfDoc, images) {
   const page = pdfDoc.addPage([595, 842]);
-
-  const layouts = {
-    1: [[197, 321]],
-    2: [[70, 321], [325, 321]],
-    3: [[70, 450], [325, 450], [197, 150]],
-    4: [[70, 450], [325, 450], [70, 150], [325, 150]],
-  };
-
-  const positions = layouts[images.length];
+  const pageWidth = page.getWidth();
+  const pageHeight = page.getHeight();
+  const margin = 30;
 
   for (let i = 0; i < images.length; i++) {
-    const file = images[i];
+    const { file, size, position } = images[i];
     const bytes = await file.arrayBuffer();
-
     const img = file.type.includes('png')
       ? await pdfDoc.embedPng(bytes)
       : await pdfDoc.embedJpg(bytes);
 
-    page.drawImage(img, {
-      x: positions[i][0],
-      y: positions[i][1],
-      width: 200,
-      height: 200,
-    });
+    // Definir tamaño
+    let width, height;
+    switch (size) {
+      case 'small':
+        width = 200; height = 200; break;
+      case 'medium':
+        width = 300; height = 300; break;
+      case 'large':
+        width = 400; height = 400; break;
+      default:
+        width = 300; height = 300;
+    }
+
+    // Definir posición Y
+    let y;
+    switch (position) {
+      case 'top':
+        y = pageHeight - height - margin; break;
+      case 'bottom':
+        y = margin; break;
+      case 'center':
+      default:
+        y = (pageHeight - height) / 2;
+    }
+
+    // Definir posición X (centrada)
+    const x = (pageWidth - width) / 2;
+
+    page.drawImage(img, { x, y, width, height });
   }
 }
 
