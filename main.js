@@ -89,8 +89,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const pageWidth = 595;
       const pageHeight = 842;
       let currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
-      let x = 30; // Margen izquierdo
-      let y = pageHeight - 30; // Margen superior (empezamos desde arriba)
+      let x = 20; // Margen izquierdo
+      let y = pageHeight - 20; // Margen superior (empezamos desde arriba)
 
       // Recorremos las imágenes para agregarlas al PDF
       for (const imgObj of images) {
@@ -103,20 +103,20 @@ document.addEventListener('DOMContentLoaded', () => {
         let width, height;
         switch (imgObj.size) {
           case 'small':
-            width = 200;
-            height = 200;
+            width = 300;
+            height = 300;
             break;
           case 'medium':
-            width = 300;
-            height = 300;
+            width = 500;
+            height = 500;
             break;
           case 'large':
-            width = 400;
-            height = 400;
+            width = 800;
+            height = 800;
             break;
           default:
-            width = 300;
-            height = 300;
+            width = 800;
+            height = 800;
         }
 
         // Dibujo de la imagen en el PDF
@@ -134,7 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Guardar el PDF como bytes
       const pdfBytes = await pdfDoc.save();
-      showPreview(pdfBytes);
+      download(pdfBytes, 'documento.pdf');
 
     } catch (error) {
       console.error("Error al generar el PDF: ", error);
