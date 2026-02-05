@@ -1,15 +1,14 @@
 document.addEventListener('DOMContentLoaded', () => {
   const fileInput = document.getElementById('fileInput');
-  const imageContainer = document.getElementById('imageContainer');
+  const pagesContainer = document.getElementById('pagesContainer');
   const generateBtn = document.getElementById('generate');
-  let images = []; // Array que guarda las imágenes
+  let images = []; // Array de imágenes que se van a agregar al PDF
 
   // Subir imágenes
   fileInput.addEventListener('change', () => {
+    console.log('Archivos seleccionados:', fileInput.files);  // Log para ver si los archivos se seleccionan
     for (const file of fileInput.files) {
-      if (file.type.startsWith('image/')) {
-        images.push(file); // Solo agregamos imágenes
-      }
+      images.push({ file, size: 'medium' }); // Por defecto tamaño medio
     }
     renderImages();
   });
@@ -36,6 +35,21 @@ document.addEventListener('DOMContentLoaded', () => {
       imgDiv.appendChild(img);
       imgDiv.appendChild(removeBtn);
       imageContainer.appendChild(imgDiv);
+    });
+  }
+
+    // Inicializar el drag & drop para reordenar las imágenes
+    new Sortable(pagesContainer, {
+      animation: 150,
+      onEnd() {
+        // Reordenamos las imágenes cuando se mueve algo
+        const sortedImages = [];
+        pagesContainer.querySelectorAll('.image-card').forEach(div => {
+          const index = div.dataset.index;
+          sortedImages.push(images[index]);
+        });
+        images = sortedImages; // Actualizamos el array con el nuevo orden
+      }
     });
   }
 
@@ -79,15 +93,20 @@ document.addEventListener('DOMContentLoaded', () => {
       yPosition -= imgHeight + 30; // Margen entre imágenes
     }
 
-    // Guardar el PDF
-    const pdfBytes = await pdfDoc.save();
-    showPreview(pdfBytes);
+      // Guardar el PDF como bytes
+      const pdfBytes = await pdfDoc.save();
+      download(pdfBytes, 'documento.pdf');
+
+    } catch (error) {
+      console.error("Error al generar el PDF: ", error);
+    }
   });
 
-  // Mostrar el PDF en la vista previa
+  // Mostrar el PDF generado en la vista previa
   function showPreview(bytes) {
     const blob = new Blob([bytes], { type: 'application/pdf' });
     const preview = document.getElementById('preview');
     preview.src = URL.createObjectURL(blob);
   }
+
 });
