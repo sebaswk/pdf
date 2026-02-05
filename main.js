@@ -77,13 +77,6 @@ async function addImages(pdfDoc, images, font) {
   for (let i = 0; i < images.length; i += 4) {
     const page = pdfDoc.addPage([595, 842]);
 
-    page.drawText('Imágenes', {
-      x: 50,
-      y: 800,
-      size: 16,
-      font,
-    });
-
     const positions = [
       [50, 450], [300, 450],
       [50, 150], [300, 150],
