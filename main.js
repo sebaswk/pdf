@@ -2,57 +2,73 @@ const input = document.getElementById('fileInput');
 const button = document.getElementById('generate');
 
 button.onclick = async () => {
-  const file = input.files[0];
-  if (!file) return alert('Sube un archivo');
-
-  const pdfDoc = await PDFLib.PDFDocument.create();
-  const page = pdfDoc.addPage([595, 842]); // A4
-  const { width, height } = page.getSize();
-
-  if (file.type.startsWith('image/')) {
-    const bytes = await file.arrayBuffer();
-    const image = file.type.includes('png')
-      ? await pdfDoc.embedPng(bytes)
-      : await pdfDoc.embedJpg(bytes);
-
-    const scale = Math.min(
-      width / image.width,
-      height / image.height
-    ) * 0.8;
-
-    page.drawImage(image, {
-      x: (width - image.width * scale) / 2,
-      y: (height - image.height * scale) / 2,
-      width: image.width * scale,
-      height: image.height * scale,
-    });
+  if (!input.files.length) {
+    return alert('Selecciona uno o más archivos');
   }
 
-  if (file.name.endsWith('.docx')) {
-    const buffer = await file.arrayBuffer();
-    const result = await mammoth.extractRawText({ arrayBuffer: buffer });
+  const pdfDoc = await PDFLib.PDFDocument.create();
+  const font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
 
-    const font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
-    const text = result.value;
+  for (const file of input.files) {
+    if (file.type.startsWith('image/')) {
+      await addImagePage(pdfDoc, file);
+    }
 
-    page.drawText(text, {
-      x: 50,
-      y: height - 80,
-      size: 12,
-      font,
-      maxWidth: width - 100,
-      lineHeight: 18,
-    });
+    if (file.name.endsWith('.docx')) {
+      await addWordPages(pdfDoc, file, font);
+    }
   }
 
   const pdfBytes = await pdfDoc.save();
   download(pdfBytes, 'documento.pdf');
 };
 
-function download(bytes, filename) {
-  const blob = new Blob([bytes], { type: 'application/pdf' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = filename;
-  link.click();
+async function addImagePage(pdfDoc, file) {
+  const page = pdfDoc.addPage([595, 842]);
+  const { width, height } = page.getSize();
+
+  const bytes = await file.arrayBuffer();
+  const image = file.type.includes('png')
+    ? await pdfDoc.embedPng(bytes)
+    : await pdfDoc.embedJpg(bytes);
+
+  const scale = Math.min(
+    (width - 80) / image.width,
+    (height - 80) / image.height
+  );
+
+  page.drawImage(image, {
+    x: (width - image.width * scale) / 2,
+    y: (height - image.height * scale) / 2,
+    width: image.width * scale,
+    height: image.height * scale,
+  });
+}
+
+async function addWordPages(pdfDoc, file, font) {
+  const buffer = await file.arrayBuffer();
+  const result = await mammoth.extractRawText({ arrayBuffer: buffer });
+
+  const text = result.value;
+  const lines = text.split('\n');
+
+  let page = pdfDoc.addPage([595, 842]);
+  let y = 800;
+
+  for (const line of lines) {
+    if (y < 60) {
+      page = pdfDoc.addPage([595, 842]);
+      y = 800;
+    }
+
+    page.drawText(line, {
+      x: 50,
+      y,
+      size: 12,
+      font,
+      maxWidth: 495,
+    });
+
+    y -= 18;
+  }
 }
