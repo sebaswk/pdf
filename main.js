@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const pdfDoc = await PDFLib.PDFDocument.create();
     let page = pdfDoc.addPage([595, 842]); // Tamaño A4
     const { width, height } = page.getSize();
-    let yPosition = height - 30; // Empezamos desde el borde superior
+    let yPosition = height - 4; // Empezamos desde el borde superior
 
     // Agregar cada imagen al PDF
     for (const imgFile of images) {
