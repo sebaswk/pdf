@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       page.drawImage(img, {
-        x: 30, // Margen izquierdo
+        x: 4, // Margen izquierdo
         y: yPosition - imgHeight, // Margen superior
         width: imgWidth,
         height: imgHeight,
