@@ -72,13 +72,13 @@ document.addEventListener('DOMContentLoaded', () => {
         ? await pdfDoc.embedPng(imgBytes)
         : await pdfDoc.embedJpg(imgBytes);
 
-      const imgWidth = width - 60; // Dejar márgenes de 30px
+      const imgWidth = width - 8; // Dejar márgenes de 30px
       const imgHeight = (img.height / img.width) * imgWidth; // Mantener proporciones
 
       // Si la imagen no cabe en la página, crear una nueva
-      if (yPosition - imgHeight < 30) {
+      if (yPosition - imgHeight < 4) {
         page = pdfDoc.addPage([595, 842]); // Nueva página
-        yPosition = height - 30;
+        yPosition = height - 4;
       }
 
       page.drawImage(img, {
@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
         height: imgHeight,
       });
 
-      yPosition -= imgHeight + 30; // Margen entre imágenes
+      yPosition -= imgHeight + 4; // Margen entre imágenes
     }
 
     // Guardar el PDF
