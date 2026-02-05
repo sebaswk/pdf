@@ -1,36 +1,42 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Generador de PDF</title>
-
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generar PDF</title>
+  <style>
+    .image-card {
+      margin-bottom: 10px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      display: inline-block;
+      width: 200px;
+      text-align: center;
+    }
+    #preview {
+      width: 100%;
+      height: 500px;
+      margin-top: 20px;
+    }
+  </style>
 </head>
 <body>
+  <h1>Generador de PDF con Imágenes</h1>
+  
+  <!-- Input para seleccionar imágenes -->
+  <input type="file" id="fileInput" multiple>
+  
+  <!-- Contenedor para las imágenes subidas -->
+  <div id="pagesContainer"></div>
 
-  <h1>Generar PDF</h1>
-
-  <input
-    type="file"
-    id="fileInput"
-    multiple
-    accept=".docx,image/*"
-  />
-
-  <ul id="fileList"></ul>
-
+  <!-- Botón para generar el PDF -->
   <button id="generate">Generar PDF</button>
 
-  <h2>Vista previa</h2>
-  <iframe id="preview"></iframe>
+  <!-- Vista previa del PDF generado -->
+  <object id="preview" type="application/pdf"></object>
 
-  <!-- Librerías -->
-  <script src="libs/pdf-lib.min.js"></script>
-  <script src="libs/mammoth.browser.min.js"></script>
-  <script src="libs/sortable.min.js"></script>
-
-  <!-- Tu código -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
   <script src="main.js"></script>
 </body>
 </html>
