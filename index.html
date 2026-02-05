@@ -18,17 +18,16 @@
 
   <!-- Botón para generar el PDF -->
   <button id="generate">Generar PDF</button>
-
-  <!-- Vista previa del PDF generado -->
-  <object id="preview" type="application/pdf"></object>
-
-  <!-- Cargar librerías JS -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+  
+  <h2>Vista previa</h2>
+  <iframe id="preview"></iframe>
+  
+  <!-- Librerías -->
+  <script src="libs/pdf-lib.min.js"></script>
   <script src="libs/mammoth.browser.min.js"></script>
-
-  <!-- Cargar tu archivo JS principal -->
+  <script src="libs/sortable.min.js"></script>
+  
+  <!-- Tu código -->
   <script src="main.js"></script>
-
 </body>
 </html>
