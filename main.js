@@ -45,6 +45,7 @@ function renderImages() {
       renderImages(); // Re-renderizar para aplicar cambios
     };
 
+    // Botón eliminar imagen
     const removeBtn = document.createElement('button');
     removeBtn.textContent = '✕';
     removeBtn.onclick = () => {
