@@ -5,6 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Generador de PDF con Imágenes</title>
   <link rel="stylesheet" href="style.css">
+  <style>
+    .centrado {
+      width: 50%; /* Ancho del contenedor */
+      margin: 0 auto; /* Centrado horizontal */
+      text-align: center; /* Centrado del texto */
+    }
+  </style>
 </head>
 <body>
 
@@ -18,9 +25,11 @@
 
   <!-- Botón para generar el PDF -->
   <button id="generate">Generar PDF</button>
-  
-  <h2>Vista previa</h2>
-  <iframe id="preview"></iframe>
+
+  <div class="centrado">
+    <h2>Vista previa</h2>
+    <iframe id="preview"></iframe>
+  </div>
   
   <!-- Librerías -->
   <script src="libs/pdf-lib.min.js"></script>
