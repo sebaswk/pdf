@@ -1,4 +1,3 @@
-
 document.addEventListener('DOMContentLoaded', () => {
   const fileInput = document.getElementById('fileInput');
   const imageContainer = document.getElementById('imageContainer');
@@ -22,6 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
     images.forEach((imgFile, index) => {
       const imgDiv = document.createElement('div');
       imgDiv.className = 'image-card';
+      imgDiv.dataset.index = index; // Añadir el índice para reordenar
 
       const img = document.createElement('img');
       img.src = URL.createObjectURL(imgFile);
@@ -38,6 +38,18 @@ document.addEventListener('DOMContentLoaded', () => {
       imgDiv.appendChild(removeBtn);
       imageContainer.appendChild(imgDiv);
     });
+
+    // Inicializar el drag & drop para reordenar las imágenes
+    new Sortable(imageContainer, {
+      animation: 150,
+      onEnd: () => {
+        // Reorganizar el array de imágenes según el nuevo orden
+        images = Array.from(imageContainer.children).map(div => {
+          const index = div.dataset.index;
+          return images[index];
+        });
+      }
+    });
   }
 
   // Generar el PDF
@@ -49,9 +61,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Crear el documento PDF
     const pdfDoc = await PDFLib.PDFDocument.create();
-    const page = pdfDoc.addPage([595, 842]); // Tamaño A4
+    let page = pdfDoc.addPage([595, 842]); // Tamaño A4
     const { width, height } = page.getSize();
-
     let yPosition = height - 30; // Empezamos desde el borde superior
 
     // Agregar cada imagen al PDF
@@ -66,8 +77,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Si la imagen no cabe en la página, crear una nueva
       if (yPosition - imgHeight < 30) {
-        yPosition = height - 30; // Reiniciar posición
         page = pdfDoc.addPage([595, 842]); // Nueva página
+        yPosition = height - 30;
       }
 
       page.drawImage(img, {
