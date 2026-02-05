@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
   const fileInput = document.getElementById('fileInput');
   const pagesContainer = document.getElementById('pagesContainer');
-  const generateBtn = document.getElementById('generate');
+  const button = document.getElementById('generate'); // Cambié a 'button' aquí
   let images = []; // Array de imágenes que se van a agregar al PDF
 
   // Subir imágenes
@@ -74,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Generar PDF con las imágenes
-  generateBtn.addEventListener('click', async () => {
+  button.addEventListener('click', async () => { // Aquí usamos 'button' como variable
     if (!images.length) {
       alert('Agrega al menos una imagen');
       return;
@@ -85,11 +85,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Creamos un nuevo documento PDF
       const pdfDoc = await PDFLib.PDFDocument.create();
-      const pageWidth = 595; // A4 en puntos (en un PDF)
-      const pageHeight = 842;
-      let currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
-      let x = 0; // Borde izquierdo
-      let y = pageHeight; // Borde superior
+      const page = pdfDoc.addPage([595, 842]); // Tamaño A4 (en puntos)
+      const { width, height } = page.getSize(); // Tamaño de la página
+
+      let yPosition = height - 30; // Comenzamos desde el borde superior (con margen)
 
       // Recorremos las imágenes para agregarlas al PDF
       for (const imgObj of images) {
@@ -98,48 +97,46 @@ document.addEventListener('DOMContentLoaded', () => {
           ? await pdfDoc.embedPng(imgBytes)
           : await pdfDoc.embedJpg(imgBytes);
 
-        // Ajustamos el tamaño de la imagen para que se ajuste a la página
-        let width, height;
-
+        // Determinamos el tamaño de la imagen según el tamaño seleccionado
+        let imgWidth, imgHeight;
         switch (imgObj.size) {
           case 'small':
-            width = pageWidth / 2; // Tamaño pequeño ajustado a la mitad de la página
-            height = (img.height / img.width) * width; // Mantener la proporción
+            imgWidth = 200;
+            imgHeight = (img.height / img.width) * imgWidth;
             break;
           case 'medium':
-            width = (pageWidth * 3) / 4; // Tamaño medio, 3/4 del ancho
-            height = (img.height / img.width) * width; // Mantener la proporción
+            imgWidth = 300;
+            imgHeight = (img.height / img.width) * imgWidth;
             break;
           case 'large':
-            width = pageWidth; // Tamaño grande ajustado a todo el ancho de la página
-            height = (img.height / img.width) * width; // Mantener la proporción
+            imgWidth = 400;
+            imgHeight = (img.height / img.width) * imgWidth;
             break;
           default:
-            width = pageWidth / 2;
-            height = (img.height / img.width) * width;
+            imgWidth = 300;
+            imgHeight = (img.height / img.width) * imgWidth;
         }
 
-        // Aseguramos que la imagen no se desborde por el borde de la página
-        if (y - height < 0) {
-          // Si la imagen no cabe, creamos una nueva página
-          currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
-          y = pageHeight;
+        // Dibujamos la imagen en el PDF
+        if (yPosition - imgHeight < 30) {
+          // Si no cabe, creamos una nueva página
+          page = pdfDoc.addPage([595, 842]); // A4
+          yPosition = height - 30;
         }
 
-        // Dibujamos la imagen
-        currentPage.drawImage(img, { x, y: y - height, width, height });
+        // Dibujo de la imagen en la página
+        page.drawImage(img, {
+          x: 30, // Borde izquierdo
+          y: yPosition - imgHeight, // Borde superior
+          width: imgWidth,
+          height: imgHeight,
+        });
 
-        // Actualizamos la posición vertical para la siguiente imagen
-        y -= height + 10; // Ajuste del margen entre imágenes
-
-        // Si llegamos al final de la página, creamos una nueva
-        if (y < 50) {
-          currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
-          y = pageHeight;
-        }
+        // Actualizamos la posición para la siguiente imagen
+        yPosition -= imgHeight + 30; // Dejamos un margen entre imágenes
       }
 
-      // Guardar el PDF como bytes
+      // Guardamos el PDF generado
       const pdfBytes = await pdfDoc.save();
       showPreview(pdfBytes);
 
