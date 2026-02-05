@@ -1,16 +1,56 @@
 body {
   font-family: system-ui, sans-serif;
   background: #f5f6f8;
-  padding: 40px;
+  margin: 0;
+  padding: 16px;
+}
+
+h1, h2 {
   text-align: center;
 }
 
-h1 {
-  margin-bottom: 20px;
+input, button {
+  width: 100%;
+  max-width: 420px;
+  margin: 12px auto;
+  display: block;
+  padding: 10px;
+  font-size: 16px;
 }
 
-input, button {
-  margin: 10px;
-  padding: 10px 14px;
-  font-size: 16px;
+#fileList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+  padding: 0;
+}
+
+#fileList li {
+  list-style: none;
+  background: white;
+  border-radius: 8px;
+  padding: 8px;
+  position: relative;
+}
+
+#fileList img {
+  width: 100%;
+  border-radius: 4px;
+}
+
+.remove {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  border: none;
+  background: none;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+iframe {
+  width: 100%;
+  height: 60vh;
+  border: 1px solid #ccc;
+  border-radius: 6px;
 }
